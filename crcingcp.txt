@@ -1,0 +1,99 @@
+- You cannot use E2 and N2D machine types.
+- **USE N2 Standard4
+- https://cloud.google.com/compute/docs/instances/nested-virtualization/overview
+
+
+Machine Type Used: n2-standard-4 - Centos 8 fully updated
+
+gcloud auth login
+**HOW TO CREATE THE VM FROM GCLOUD**
+```
+gcloud compute instances create ajcrc --enable-nested-virtualization --zone=northamerica-northeast2-a --machine-type=n2-standard-4 --preemptible --boot-disk-size=100G --boot-disk-type=pd-balanced --image-project=centos-cloud --image-family=centos-8 --tags https-server,crc
+```
+
+edit yaml file and add
+```
+advancedMachineFeatures:   enableNestedVirtualization: true
+```
+
+4 mkdir Downloads 
+7 sudo yum install wget -y
+8 wget https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/crc/latest/crc-linux-amd64.tar.xz
+9 tar xvf crc-linux-amd64.tar.xz 
+10 echo $PATH
+17  sudo cp crc /usr/local/bin
+18  crc setup
+*scripted*
+mkdir Downloads && \
+	sudo yum install wget -y && \
+	wget "https://developers.redhat.com/content-gateway/rest/mirror/pub/openshift-v4/clients/crc/latest/crc-linux-amd64.tar.xz" && \
+        tar xvf crc-linux-amd64.tar.xz && \
+	cd crc-linux-1.33.1-amd64 && \
+        sudo cp crc /usr/local/bin && \
+	crc setup  && \
+
+
+
+	sudo firewall-cmd --zone=libvirt --add-forward-port=port=443:proto=tcp:toport=443:toaddr=192.168.130.11 && \
+	sudo firewall-cmd --zone=libvirt --add-forward-port=port=6443:proto=tcp:toport=6443:toaddr=192.168.130.11 && \
+	sudo firewall-cmd --zone=libvirt  --add-masquerade && \
+	sudo firewall-cmd  --zone=libvirt --add-service https && \
+	sudo firewall-cmd --zone=libvirt --add-port=6443/tcp && \
+	sudo firewall-cmd --zone=libvirt --add-port=443/tcp && \
+	sudo firewall-cmd --zone=libvirt --add-interface=eth0 && \ 
+	sudo iptables -F && \
+	sudo iptables -L && \
+	crc start && \
+	watch crc status
+
+**ALL FIREWALL COMMANDS IN SUDO**
+sudo yum install firewalld 
+63 sudo firewall-cmd --zone=libvirt --add-forward-port=port=443:proto=tcp:toport=443:toaddr=192.168.130.11 
+64 sudo firewall-cmd --zone=libvirt --add-forward-port=port=6443:proto=tcp:toport=6443:toaddr=192.168.130.11
+62 sudo firewall-cmd --add-masquerade
+sudo firewall-cmd --zone=libvirt --add-masquerade
+
+sudo firewall-cmd  --add-service https
+sudo firewall-cmd --zone=libvirt --add-service https
+
+
+	
+41 wget "https://access.cdn.redhat.com/content/origin/files/sha256/80/80e7afa26ac8c6ceefe3738e65e1efac588fbbdd0425510b938f89336819e67d/oc-4.8.13-linux.tar.gz?user=4594a607d6dc936510976ad1f9a500e2&_auth_=1632956497_0f452f17317865094ad8e4b1c4e70afe"
+
+mv oc-4.8.13-linux.tar.gz\?user\=4594a607d6dc936510976ad1f9a500e2\&_auth_\=1632956497_0f452f17317865094ad8e4b1c4e70afe oc.tar.gz
+
+26 sudo firewall-cmd --zone=libvirt --add-port=6443/tcp 
+27 sudo firewall-cmd --zone=libvirt --add-port=443/tcp
+
+firewall-cmd --zone=libvirt --add-forward-port=port=443:proto=tcp:toport=443:toaddr=192.168.130.11
+
+firewall-cmd --zone=libvirt --add-forward-port=port=6443:proto=tcp:toport=6443:toaddr=192.168.130.11
+
+firewall-cmd --zone=libvirt --add-interface=eth0
+
+iptables -F
+iptables -L
+
+iptables-save 
+82 sudo iptables-save 
+83 firewall-cmd --runtime-to-permanent
+
+
+
+
+FOR FIREWALLD SUPPORT
+sudo firewall-cmd --zone=libvirt --list-all
+
+OC cli
+```
+eval $(crc oc-env)
+```
+
+
+Ubuntu Scripting
+```
+gcloud compute disks create crc-disk --image-project ubuntu-os-cloud --image-family ubuntu-1804-lts --zone northamerica-northeast2-a --boot-disk-size=100G
+gcloud compute images create crc-v4-image --source-disk crc-disk --source-disk-zone northamerica-northeast2-a --licenses "https://compute.googleapis.com/compute/v1/projects/vm-options/global/licenses/enable-vmx"
+
+#use this image to create a vm instance 
+```
